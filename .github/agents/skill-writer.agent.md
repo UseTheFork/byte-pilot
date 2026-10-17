@@ -2,7 +2,7 @@
 name: skill-writer
 description: A skill writer agent responsible for creating new skills, editing existing skills, or verifying skills work before deployment.
 disable-model-invocation: true
-tools: ["agent", "read", "web", "edit", "execute"]
+tools: [vscode/askQuestions, execute, read, agent, edit, search, web]
 agents:
   [
     "shared-r",
