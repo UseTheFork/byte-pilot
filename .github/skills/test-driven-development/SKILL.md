@@ -1,5 +1,5 @@
 ---
-name: byte-test-driven-development
+name: test-driven-development
 description: Use when implementing any feature or bugfix, before writing implementation code
 ---
 
@@ -32,7 +32,7 @@ Thinking "skip TDD just this once"? Stop. That's rationalization.
 
 ## The Iron Law
 
-**IMPORTANT: NO PRODUCTION CODE WITHOUT A FAILING TEST FIRST**
+> **IMPORTANT: NO PRODUCTION CODE WITHOUT A FAILING TEST FIRST**
 
 Write code before the test? Delete it. Start over.
 
@@ -47,33 +47,32 @@ Implement fresh from tests. Period.
 
 ## Red-Green-Refactor
 
-```dot
-digraph tdd_cycle {
-    rankdir=LR;
-    red [label="RED\nWrite failing test", shape=box, style=filled, fillcolor="#ffcccc"];
-    verify_red [label="Verify fails\ncorrectly", shape=diamond];
-    green [label="GREEN\nMinimal code", shape=box, style=filled, fillcolor="#ccffcc"];
-    verify_green [label="Verify passes\nAll green", shape=diamond];
-    refactor [label="REFACTOR\nClean up", shape=box, style=filled, fillcolor="#ccccff"];
-    next [label="Next", shape=ellipse];
+```mermaid
+flowchart LR
+  red["RED<br/>Write failing test"]
+  verify_red{"Verify fails<br/>correctly"}
+  green["GREEN<br/>Minimal code"]
+  verify_green{"Verify passes<br/>All green"}
+  refactor["REFACTOR<br/>Clean up"]
+  next([Next])
 
-    red -> verify_red;
-    verify_red -> green [label="yes"];
-    verify_red -> red [label="wrong\nfailure"];
-    green -> verify_green;
-    verify_green -> refactor [label="yes"];
-    verify_green -> green [label="no"];
-    refactor -> verify_green [label="stay\ngreen"];
-    verify_green -> next;
-    next -> red;
-}
+  red --> verify_red
+  verify_red -->|yes| green
+  verify_red -->|wrong failure| red
+  green --> verify_green
+  verify_green -->|yes| refactor
+  verify_green -->|no| green
+  refactor -->|stay green| verify_green
+  verify_green --> next
+  next --> red
 ```
 
 ### RED - Write Failing Test
 
 Write one minimal test showing what should happen.
 
-<Good>
+#### Good Example
+
 ```typescript
 test('retries failed operations 3 times', async () => {
   let attempts = 0;
@@ -89,11 +88,12 @@ expect(result).toBe('success');
 expect(attempts).toBe(3);
 });
 
-````
+```
 Clear name, tests real behavior, one thing
-</Good>
 
-<Bad>
+
+#### Bad Example
+
 ```typescript
 test('retry works', async () => {
   const mock = jest.fn()
@@ -103,10 +103,9 @@ test('retry works', async () => {
   await retryOperation(mock);
   expect(mock).toHaveBeenCalledTimes(3);
 });
-````
-
+```
 Vague name, tests mock not code
-</Bad>
+
 
 **Requirements:**
 
@@ -116,10 +115,10 @@ Vague name, tests mock not code
 
 ### Verify RED - Watch It Fail
 
-**MANDATORY. Never skip.**
+> **MANDATORY. Never skip.**
 
 ```bash
-pnpm test path/to/test.test.ts
+just tool::pnpm test path/to/test.test.ts
 ```
 
 Confirm:
@@ -136,7 +135,7 @@ Confirm:
 
 Write simplest code to pass the test.
 
-<Good>
+#### Good Example
 ```typescript
 async function retryOperation<T>(fn: () => Promise<T>): Promise<T> {
   for (let i = 0; i < 3; i++) {
@@ -150,9 +149,8 @@ async function retryOperation<T>(fn: () => Promise<T>): Promise<T> {
 }
 ```
 Just enough to pass
-</Good>
 
-<Bad>
+#### Bad Example
 ```typescript
 async function retryOperation<T>(
   fn: () => Promise<T>,
@@ -166,7 +164,6 @@ async function retryOperation<T>(
 }
 ```
 Over-engineered
-</Bad>
 
 Don't add features, refactor other code, or "improve" beyond the test.
 
@@ -175,7 +172,7 @@ Don't add features, refactor other code, or "improve" beyond the test.
 **MANDATORY.**
 
 ```bash
-pnpm test path/to/test.test.ts
+just tool::pnpm test path/to/test.test.ts
 ```
 
 Confirm:
@@ -188,7 +185,9 @@ Confirm:
 
 **Other tests fail?** Fix now.
 
-**"Other tests" means the project's suite, not just your file.** A green run of the test you wrote is not a green suite. Before you call the change done, run the project's test command (bare `pytest`, `pnpm test`, `php artisan test` — whatever the repo uses) even when your task named only one test file. A scope statement in your task bounds the deliverable, not your verification. Any failure that run shows — including one you didn't cause — goes in your report by name; a red test you watched scroll past and didn't mention is a report falsified by omission.
+**"Other tests" means the project's suite, not just your file.**
+
+A green run of the test you wrote is not a green suite. Before you call the change done, run the project's test command (bare `just tool::pnpm test`, `just test::test` - whatever the repo uses) even when your task named only one test file. A scope statement in your task bounds the deliverable, not your verification. Any failure that run shows - including one you didn't cause - goes in your report by name; a red test you watched scroll past and didn't mention is a report falsified by omission.
 
 ### REFACTOR - Clean Up
 
@@ -269,7 +268,7 @@ test("rejects empty email", async () => {
 **Verify RED**
 
 ```bash
-$ npm test
+$ just tool::pnpm test
 FAIL: expected 'Email required', got undefined
 ```
 
@@ -287,7 +286,7 @@ function submitForm(data: FormData) {
 **Verify GREEN**
 
 ```bash
-$ npm test
+$ just tool::pnpm test
 PASS
 ```
 
@@ -326,9 +325,14 @@ Never fix bugs without a test.
 
 ## Final Rule
 
-```
-Production code → test exists and failed first
-Otherwise → not TDD
+```mermaid
+flowchart TD
+  test_first{"Did a test exist and fail first?"}
+  production_code["Production code"]
+  not_tdd["Not TDD"]
+
+  test_first -->|yes| production_code
+  test_first -->|no| not_tdd
 ```
 
 No exceptions without your human partner's permission.

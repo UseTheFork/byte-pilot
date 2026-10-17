@@ -1,5 +1,5 @@
 ---
-name: byte-ask
+name: ask
 target: vscode
 disable-model-invocation: true
 tools:

@@ -6,10 +6,8 @@
 
 A test exists to catch a specific break. Two principles govern everything here:
 
-```text
 1. Every test names the break it catches
 2. Every test exercises the real thing
-```
 
 Strict TDD produces both naturally: a test written first and watched failing against real code has already proven it can fail, and only earns a mock when the real dependency proves slow or external.
 
