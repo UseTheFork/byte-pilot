@@ -1,5 +1,5 @@
 ---
-name: creating-vscode-custom-agents
+name: creating-custom-agents
 description: Use when creating, editing, or debugging VS Code custom agents (.agent.md files), chat modes, agent handoffs, subagent-only agents, or when a custom agent does not appear in the agents dropdown
 ---
 
