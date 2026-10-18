@@ -1,14 +1,15 @@
 ---
-name: byte-sdd-plan
-tools: [read, search, edit, execute]
-user-invocable: false
+name: sdd-plan
+description: Turn an approved design or specification into a reviewable, task-by-task implementation plan
+argument-hint: Provide the approved design/specification and any constraints
+tools: [vscode/askQuestions, execute, read, edit, search]
 handoffs:
-  - label: Start Implementation
-    agent: bi-cx-ai-sdd-orchestrator
-    prompt: Implement the plan
-version: 0.0.1
+  - label: Execute Approved Plan
+    agent: sdd-orchestrator
+    prompt: Execute the approved implementation plan created in this conversation. Confirm the plan path and approval before making changes.
+    send: false
+user-invocable: true
 ---
-
 # Instruction
 
 Before drafting a plan, review `.github/instructions/` for files relevant to the spec or planned work. Incorporate applicable guidance into the plan; do not assume unrelated files apply.
@@ -19,11 +20,7 @@ Before drafting a plan, review `.github/instructions/` for files relevant to the
 
 Write implementation plans for an engineer who has not seen this codebase or this spec. Assume they write idiomatic code in the project's language once they know the exact interface and the exact test, and that they will make a reasonable choice wherever the plan leaves one open. What they cannot know is what you decided: which files, which names and signatures, which values from the spec, which tests prove each task. Document those. Give them the whole plan as bite-sized tasks. DRY. YAGNI. TDD. Frequent commits.
 
-**Announce at start:** "I'm using the bi-cx-ai-writing-plans skill to create the implementation plan."
-
-**Save plans to:** `.byte/docs/plans/YYYY-MM-DD-<feature-name>.md`
-
-- (User preferences for plan location override this default)
+**Save plans to:** `.github/knowledge/plans/YYYY-MM-DD-<topic>.md`
 
 ## Scope Check
 
@@ -62,18 +59,16 @@ A task is the smallest unit that carries its own test cycle and is worth a fresh
 # [Feature Name] Implementation Plan
 
 Steps use checkbox (`- [ ]`) syntax for tracking.
+**Key:**
+- [ ] indicates a step that needs to be completed.
+- [X] indicates a step that has been completed.
+- [S] indicates a step that has been skipped.
 
 **Goal:** [One sentence describing what this builds]
 
 **Architecture:** [2-3 sentences about approach]
 
-**Tech Stack:** [Key technologies/libraries]
-
 **Spec:** [path to the spec/design doc this plan implements — the plan argues from the spec, so the spec travels with it; executors read both]
-
-## Global Constraints
-
-[The spec's project-wide requirements — version floors, dependency limits, naming and copy rules, platform requirements — one line each, with exact values copied verbatim from the spec. Every task's requirements implicitly include this section.]
 
 ## Review Focus
 
@@ -161,7 +156,7 @@ After saving and self-reviewing the plan, link it for your human partner to read
 
 **When no execution method has already been supplied:**
 
-**"Plan complete and saved to `.byte/docs/plans/<filename>.md`. Please review the plan. Which execution approach would you prefer?**
+**"Plan complete and saved to `.github/knowledge/plans/<filename>.md`. Please review the plan. Which execution approach would you prefer?**
 
 - **Subagent-driven** - A fresh subagent implements each task and a fresh reviewer checks it before the next one starts, then a whole-branch review at the end. Most thorough; costs a fresh context per task and per review.
 - **Native** - I implement every task myself in this session, the way this harness runs work, then one fresh reviewer on the most capable model checks the whole branch. Cheapest and fastest; no independent review until the end. Runs well with a mid-tier session model, since the plan carries the design.
@@ -170,4 +165,4 @@ After saving and self-reviewing the plan, link it for your human partner to read
 
 **When an execution method has already been supplied:**
 
-**"Plan complete and saved to `.byte/docs/plans/<filename>.md`. Please review the plan. Does it capture what you want?"**
+**"Plan complete and saved to `.github/knowledge/plans/<filename>.md`. Please review the plan. Does it capture what you want?"**

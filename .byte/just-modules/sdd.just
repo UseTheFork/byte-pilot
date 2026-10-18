@@ -1,13 +1,13 @@
 set positional-arguments
 
 review-package *args:
-    @node {{ justfile_directory() }}/.bicx/assets/scripts/sdd/review-package.cjs "$@"
+    @node {{ justfile_directory() }}/.github/scripts/sdd/review-package.cjs "$@"
 
 workspace *args:
-    @node {{ justfile_directory() }}/.bicx/assets/scripts/sdd/workspace.cjs "$@"
+    @node {{ justfile_directory() }}/.github/scripts/sdd/workspace.cjs "$@"
 
 task-brief *args:
-    @node {{ justfile_directory() }}/.bicx/assets/scripts/sdd/task-brief.cjs "$@"
+    @node {{ justfile_directory() }}/.github/scripts/sdd/task-brief.cjs "$@"
 
 worktree-info:
     #!/usr/bin/env bash

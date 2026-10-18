@@ -44,7 +44,7 @@ function owns(directory, planId) {
 const args = process.argv.slice(2);
 
 if (args.length !== 1) {
-  fail("usage: sdd-workspace.cjs PLAN_FILE", 2);
+  fail("usage: workspace.cjs PLAN_FILE", 2);
 }
 
 const [plan] = args;
@@ -65,7 +65,7 @@ if (!slug || slug === "." || slug === "..") {
 }
 
 const root = physicalPath(runGit(["rev-parse", "--show-toplevel"]));
-const base = path.join(root, ".bicx", "sdd");
+const base = path.join(root, ".github", "knowledge", "sdd");
 const planDirectory = physicalPath(path.dirname(plan));
 const absolutePlan = path.join(planDirectory, path.basename(plan));
 const relativePlan = path.relative(root, absolutePlan);

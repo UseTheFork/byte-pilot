@@ -83,7 +83,7 @@ let output;
 if (specifiedOutput !== undefined) {
   output = specifiedOutput;
 } else {
-  const workspaceScript = path.join(__dirname, "sdd-workspace.cjs");
+  const workspaceScript = path.join(__dirname, "workspace.cjs");
   let directory;
 
   try {
