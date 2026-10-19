@@ -10,7 +10,8 @@ user-invocable: false
 tools:
   [
     read,
-    search
+    search,
+    todo
   ]
 agents: []
 ---

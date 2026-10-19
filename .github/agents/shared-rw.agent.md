@@ -11,7 +11,8 @@ tools:
   [
     read,
     search,
-    edit
+    edit,
+    todo
   ]
 agents: []
 ---

@@ -12,7 +12,8 @@ tools:
     read,
     search,
     edit,
-    execute
+    execute,
+    todo
   ]
 agents: []
 ---
