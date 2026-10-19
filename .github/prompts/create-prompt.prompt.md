@@ -13,6 +13,7 @@ ${input:requirements:Describe the prompt or capability to create}
 Before acting, read and follow each required skill:
 
 - **REQUIRED:** writing-skills - #file:./../skills/writing-skills/SKILL.md
+- **REQUIRED:** #file:./../skills/writing-skills/SKILL.md
 - **REQUIRED:** writing-prompt-files - #file:./../skills/writing-prompt-files/SKILL.md
 
 Treat their requirements as mandatory.

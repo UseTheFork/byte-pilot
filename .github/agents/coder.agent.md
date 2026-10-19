@@ -1,8 +1,14 @@
 ---
 name: coder
 disable-model-invocation: true
-tools: ["search", "read", "web", "edit", "execute", "execute/testFailure", "vscode/askQuestions"]
-agents: []
+tools: ["search", "read", "web", "edit", "execute", "execute/testFailure", "vscode/askQuestions", "todo", "agent"]
+agents:
+  [
+    shared-r,
+    shared-rw,
+    shared-rwx,
+    shared-explore
+  ]
 user-invocable: true
 ---
 
