@@ -1,6 +1,6 @@
 ---
 name: creating-tech-instructions
-description: Use when creating or updating a repository's `.github/instructions/tech.md` file for Copilot with project tooling, environment requirements, or commands.
+description: Use when creating or updating a repository's `.github/instructions/tech.instructions.md` file for Copilot with project tooling, environment requirements, or commands.
 ---
 
 # Creating Technical Instructions
@@ -11,17 +11,23 @@ Document the repository's confirmed toolchain and contributor commands. Inspect 
 
 ## Workflow
 
-1. Inspect existing `tech.md`, manifests and lockfiles, version files, scripts, task runners, tool configs, CI, project docs, and source. Determine whether this is an implemented project or scaffold.
+1. Inspect existing `tech.instructions.md`, manifests and lockfiles, version files, scripts, task runners, tool configs, CI, project docs, and source. Determine whether this is an implemented project or scaffold.
 2. If sparse or scaffolded, first ask: “Is this a new project, or is implementation/configuration elsewhere?” Do not choose tools before the answer. Then ask only for missing material choices (language, package manager, runtime, build/test tools). If unavailable, document observed absences and leave unknowns unspecified.
 3. For established projects, derive guidance from checked-in config and current docs; resolve conflicts against scripts and CI.
-4. Create or update exactly `.github/instructions/tech.md`. Include confirmed tools, versions, prerequisites, commands, and constraints. State when relevant commands are absent; never invent them.
+4. Create or update exactly `.github/instructions/tech.instructions.md`. Include confirmed tools, versions, prerequisites, commands, and constraints. State when relevant commands are absent; never invent them.
 5. Run safe, relevant commands when practical. Configured does not mean passing. Do not install, deploy, or run destructive commands without authorization. Label commands configured, documented, or executed; report failures and skipped runs.
 
 ## Content Shape
 
-Use a short structure suited to the repository:
+Start with this required frontmatter. `applyTo: "**"` is intentional because toolchain and contributor-command guidance applies across workspace changes. Then use a short structure suited to the repository.
 
 ```markdown
+---
+name: Technical Context
+description: Project languages, runtimes, tools, environment, and contributor commands.
+applyTo: "**"
+---
+
 # Technical Context
 
 ## Toolchain
@@ -44,9 +50,9 @@ Include only evidenced sections and exact commands. Name each source. Distinguis
 
 ## Scope and Format
 
-Cover languages, runtimes, package managers, tools, versions, commands, and environment constraints. Product purpose belongs in `product.md`; architecture and coding conventions belong elsewhere.
+Cover languages, runtimes, package managers, tools, versions, commands, and environment constraints. Product purpose belongs in `product.instructions.md`; architecture and coding conventions belong elsewhere.
 
-Use plain Markdown at the requested path; do not add front matter or silently rename it. VS Code's Copilot discovery uses `*.instructions.md`, so `tech.md` is not automatically attached by that convention. If automatic discovery is expected, explain the mismatch and ask before changing the path. Do not explain how to enable instructions.
+Keep the body in Markdown. Do not omit the required frontmatter or silently change the filename. Do not explain how to enable instructions.
 
 ## Common Mistakes
 
