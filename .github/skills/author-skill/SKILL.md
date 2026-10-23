@@ -1,0 +1,24 @@
+---
+name: author-skill
+description: Create or update a project skill from the user's requirements
+argument-hint: "[skill idea or requirements]"
+disable-model-invocation: true
+user-invocable: true
+---
+
+Create a skill based on these requirements:
+
+```
+${input:requirements:Describe the skill or capability to create}
+```
+
+Before acting, read and follow each required skill:
+
+- **REQUIRED:** `int-writing-skills`
+- **REQUIRED:** `int-test-driven-development`
+- **REQUIRED:** `int-writing-for-agents`
+- **REQUIRED:** `int-verification-before-completion`
+
+Treat their requirements as mandatory. Follow the complete RED-GREEN-REFACTOR process for skill documentation, including baseline scenarios before authoring and validation after authoring. Follow TDD for any implementation code involved. Run fresh, relevant verification before making completion claims. If a required test or verification cannot be performed with available tools, report that limitation accurately; do not claim it passed.
+
+Create the skill in `.github/skills/<skill-name>/SKILL.md`, following the repository's conventions and the requested scope. Complete the task rather than returning only a plan. Do not modify unrelated files. Finish with a concise summary of the created skill and verification performed, including any blockers or unverified requirements.
