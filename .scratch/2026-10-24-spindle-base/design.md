@@ -19,6 +19,7 @@ In scope (base):
 - Skills only. All current skills in `.github/skills` ship, including the `int-*` internal skills. `init` always installs all of them; there is no skill selection.
 - Stubs in `src/stubs/skills/<name>/`, mirroring each skill directory, including sub-files such as `templates/`.
 - Nunjucks rendering with variables.
+- Flag equivalents for every prompt so `init` and `update` can run non-interactively (user decision).
 - `.github/spindle.json` config.
 - `version` frontmatter on every skill.
 - Update detection by version comparison.
