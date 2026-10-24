@@ -6,7 +6,7 @@
   "license": "ISC",
   "author": "",
   "bin": {
-    "byte": "./build/index.js"
+    "spindle": "./build/index.js"
   },
   "files": [
     "build",
