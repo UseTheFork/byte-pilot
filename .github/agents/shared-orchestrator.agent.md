@@ -1,7 +1,7 @@
 ---
 name: shared-orchestrator
 disable-model-invocation: true
-tools: [vscode/askQuestions, read, agent, edit, search, web, todo, artifacts]
+tools: [vscode/askQuestions, execute, read, agent, edit, search, web, todo, artifacts]
 agents:
   [
     shared-r,
