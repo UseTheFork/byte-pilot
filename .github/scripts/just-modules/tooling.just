@@ -2,17 +2,6 @@ set positional-arguments
 pnpm *args:
     @cd {{ justfile_directory() }}/packages/orchestration && pnpm "$@"
 
-composer *args:
-    @cd {{ justfile_directory() }}/packages/orchestration && composer "$@"
-
-nix-update:
-    @cd {{ justfile_directory() }} && nix flake update
-
-
-[doc('regenerate IDE helper metadata for editor autocompletion')]
-ide-helper:
-    @cd {{ justfile_directory() }}/packages/orchestration && composer ide-helper
-
 git *args:
     @cd {{ justfile_directory() }} && git "$@"
 
