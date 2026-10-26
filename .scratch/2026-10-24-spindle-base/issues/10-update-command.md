@@ -8,14 +8,15 @@ Category: enhancement
 **Blocked by:** 04, 06
 
 **Status:** ready-for-agent
+**Execution:** integrated
 
-- [ ] Only a strictly greater stub version counts as outdated; equal or lower versions are left alone
-- [ ] A missing or non-semver installed version is skipped with a warning
-- [ ] Skills not on disk are ignored and never installed
-- [ ] Overwriting re-renders with the stored stacks and variables
-- [ ] A flag sets the overwrite-or-skip policy for non-interactive runs
-- [ ] Editing `spindle.json` and running `update` picks up the changed stacks and variables
-- [ ] Tests at the CLI seam cover each of the above
+- [X] Only a strictly greater stub version counts as outdated; equal or lower versions are left alone
+- [X] A missing or non-semver installed version is skipped with a warning
+- [X] Skills not on disk are ignored and never installed
+- [X] Overwriting re-renders with the stored stacks and variables
+- [X] A flag sets the overwrite-or-skip policy for non-interactive runs
+- [X] Editing `spindle.json` and running `update` picks up the changed stacks and variables
+- [X] Tests at the CLI seam cover each of the above
 
 Checklist key: `- [ ]` Not started; `- [X]` Complete; `- [-]` In progress; `- [S]` Skipped.
 

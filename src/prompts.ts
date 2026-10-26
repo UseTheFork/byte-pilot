@@ -43,3 +43,18 @@ export async function promptConflict(skill: string): Promise<"overwrite" | "skip
   });
   return ensureAnswer<"overwrite" | "skip">(answer);
 }
+
+export async function promptOutdated(
+  skill: string,
+  installed: string,
+  available: string,
+): Promise<"overwrite" | "skip"> {
+  const answer = await select<"overwrite" | "skip">({
+    message: `Skill '${skill}' is outdated (installed ${installed}, available ${available}). What should happen?`,
+    options: [
+      { value: "overwrite", label: "Overwrite" },
+      { value: "skip", label: "Skip" },
+    ],
+  });
+  return ensureAnswer<"overwrite" | "skip">(answer);
+}

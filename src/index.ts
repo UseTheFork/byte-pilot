@@ -1,17 +1,23 @@
 #!/usr/bin/env node
 import { constants } from "node:fs";
-import { access, copyFile, mkdir, readdir, rm, writeFile } from "node:fs/promises";
+import { access, mkdir, readdir, rm, writeFile } from "node:fs/promises";
 import { delimiter, join } from "node:path";
-import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 
 import chalk from "chalk";
 
+import {
+  exists,
+  installDirectory,
+  parseConflictPolicy,
+  stubsRoot,
+  supportedStacks,
+  validateStacks,
+  type ConflictPolicy,
+} from "./install.js";
 import { promptConflict, promptStacks, promptVariable } from "./prompts.js";
-import { renderFile, type RenderContext } from "./render.js";
+import { update } from "./update.js";
 import { loadVariableDefinitions, parseVariableFlags } from "./variables.js";
-
-const supportedStacks = ["php-laravel", "python", "typescript"] as const;
 
 const justInstallUrl = "https://just.systems/man/en/installation.html";
 
@@ -42,40 +48,6 @@ async function requireJust() {
   throw new Error(
     `\`just\` is not installed or not on PATH. spindle requires it; install it from ${justInstallUrl}`,
   );
-}
-
-// SPINDLE_STUBS_DIR overrides the stubs root (the directory containing `skills/`); tests use it for fixture stubs.
-function stubsRoot() {
-  return process.env.SPINDLE_STUBS_DIR ?? fileURLToPath(new URL("./stubs/", import.meta.url));
-}
-
-async function installDirectory(source: string, target: string, context: RenderContext) {
-  await mkdir(target, { recursive: true });
-  for (const entry of await readdir(source, { withFileTypes: true })) {
-    const from = join(source, entry.name);
-    const to = join(target, entry.name);
-    if (entry.isDirectory()) {
-      await installDirectory(from, to, context);
-      continue;
-    }
-    const rendered = await renderFile(from, context);
-    if (rendered === null) {
-      await copyFile(from, to);
-    } else {
-      await writeFile(to, rendered);
-    }
-  }
-}
-
-type ConflictPolicy = "overwrite" | "skip";
-
-async function exists(path: string) {
-  try {
-    await access(path);
-    return true;
-  } catch {
-    return false;
-  }
 }
 
 async function init(
@@ -152,6 +124,24 @@ ${chalk.bold("Options:")}
 
 Fails if .github/spindle.json already exists; use \`spindle update\` instead.
 Prompts are also disabled when stdin or stdout is not a terminal.
+Other commands: update (see \`spindle update --help\`).
+`;
+
+const updateHelpText = `${chalk.bold("Usage:")} spindle update [options]
+
+Re-render installed skills whose shipped version is newer than the installed one.
+Reads stacks and variables from .github/spindle.json (edit it by hand to change them)
+and never rewrites it. Skills not already in .github/skills are ignored.
+
+${chalk.bold("Options:")}
+  --on-conflict <overwrite|skip>
+                        Policy for outdated skills; required when non-interactive and any
+                        are outdated (interactive runs prompt per skill)
+  --no-interactive      Never prompt; outdated skills without --on-conflict are an error
+  --help                Show this help
+
+Requires .github/spindle.json; run \`spindle init\` first.
+Installed skills with a missing or non-semver version are skipped with a warning.
 `;
 
 async function main() {
@@ -171,14 +161,29 @@ async function main() {
   });
 
   if (values.help) {
-    console.log(helpText);
+    console.log(positionals[0] === "update" ? updateHelpText : helpText);
     return;
   }
 
-  if (positionals[0] !== "init" || positionals.length !== 1) {
+  const command = positionals[0];
+  if ((command !== "init" && command !== "update") || positionals.length !== 1) {
     throw new Error(
-      "Usage: spindle init [--stack <id>] [--var <name>=<value>] [--on-conflict <overwrite|skip>] [--no-interactive]. See --help.",
+      "Usage: spindle init [--stack <id>] [--var <name>=<value>] [--on-conflict <overwrite|skip>] [--no-interactive] | spindle update [--on-conflict <overwrite|skip>] [--no-interactive]. See --help.",
     );
+  }
+
+  const policy = parseConflictPolicy(values["on-conflict"]);
+  const interactive =
+    !values["no-interactive"] && Boolean(process.stdin.isTTY) && Boolean(process.stdout.isTTY);
+
+  if (command === "update") {
+    if (values.stack || values.var) {
+      throw new Error(
+        "`spindle update` does not accept --stack or --var; edit .github/spindle.json.",
+      );
+    }
+    await update(interactive, policy);
+    return;
   }
 
   if (await exists(join(process.cwd(), ".github", "spindle.json"))) {
@@ -187,23 +192,11 @@ async function main() {
     );
   }
 
-  const policy = values["on-conflict"];
-  if (policy !== undefined && policy !== "overwrite" && policy !== "skip") {
-    throw new Error(`Invalid --on-conflict '${policy}'. Use overwrite or skip.`);
-  }
-
-  const interactive =
-    !values["no-interactive"] && Boolean(process.stdin.isTTY) && Boolean(process.stdout.isTTY);
-
   const definitions = await loadVariableDefinitions(stubsRoot());
   const supplied = parseVariableFlags(values.var ?? [], definitions);
 
   let stacks = [...new Set(values.stack ?? [])];
-  for (const stack of stacks) {
-    if (!supportedStacks.includes(stack as (typeof supportedStacks)[number])) {
-      throw new Error(`Invalid stack '${stack}'. Supported stacks: ${supportedStacks.join(", ")}.`);
-    }
-  }
+  validateStacks(stacks);
   if (stacks.length === 0) {
     if (!interactive) {
       throw new Error(
