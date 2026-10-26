@@ -1,11 +1,13 @@
 #!/usr/bin/env node
 import { constants } from "node:fs";
-import { access, cp, mkdir, readdir, writeFile } from "node:fs/promises";
+import { access, copyFile, mkdir, readdir, writeFile } from "node:fs/promises";
 import { delimiter, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 
 import chalk from "chalk";
+
+import { renderFile, type RenderContext } from "./render.js";
 
 const supportedStacks = ["php-laravel", "python", "typescript"] as const;
 
@@ -40,10 +42,33 @@ async function requireJust() {
   );
 }
 
-async function init(stacks: string[]) {
+// SPINDLE_STUBS_DIR overrides the stubs root (the directory containing `skills/`); tests use it for fixture stubs.
+function stubsRoot() {
+  return process.env.SPINDLE_STUBS_DIR ?? fileURLToPath(new URL("./stubs/", import.meta.url));
+}
+
+async function installDirectory(source: string, target: string, context: RenderContext) {
+  await mkdir(target, { recursive: true });
+  for (const entry of await readdir(source, { withFileTypes: true })) {
+    const from = join(source, entry.name);
+    const to = join(target, entry.name);
+    if (entry.isDirectory()) {
+      await installDirectory(from, to, context);
+      continue;
+    }
+    const rendered = await renderFile(from, context);
+    if (rendered === null) {
+      await copyFile(from, to);
+    } else {
+      await writeFile(to, rendered);
+    }
+  }
+}
+
+async function init(stacks: string[], variables: Record<string, string> = {}) {
   const githubDirectory = join(process.cwd(), ".github");
   const skillsDirectory = join(githubDirectory, "skills");
-  const stubsDirectory = fileURLToPath(new URL("./stubs/skills/", import.meta.url));
+  const stubsDirectory = join(stubsRoot(), "skills");
   const stubNames = await readdir(stubsDirectory, { withFileTypes: true });
   const skillStubs = stubNames.filter((entry) => entry.isDirectory());
 
@@ -53,14 +78,15 @@ async function init(stacks: string[]) {
 
   await mkdir(skillsDirectory, { recursive: true });
   for (const stub of skillStubs) {
-    await cp(join(stubsDirectory, stub.name), join(skillsDirectory, stub.name), {
-      recursive: true,
+    await installDirectory(join(stubsDirectory, stub.name), join(skillsDirectory, stub.name), {
+      stacks,
+      variables,
     });
   }
 
   await writeFile(
     join(githubDirectory, "spindle.json"),
-    `${JSON.stringify({ stacks, variables: {} }, null, 2)}\n`,
+    `${JSON.stringify({ stacks, variables }, null, 2)}\n`,
   );
 
   console.log(

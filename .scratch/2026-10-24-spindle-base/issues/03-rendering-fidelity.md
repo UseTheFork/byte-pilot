@@ -8,12 +8,13 @@ Category: enhancement
 **Blocked by:** 01
 
 **Status:** ready-for-agent
+**Execution:** integrated
 
-- [ ] Output delimiters are `<%= %>` and tags are `<% %>`; variables substitute in text files
-- [ ] `{{VSCODE_...}}` text is preserved unchanged in installed skills
-- [ ] Sub-files install alongside their skill, including nested directories
-- [ ] Non-text files are copied byte for byte
-- [ ] Tests at the CLI seam cover each of the above
+- [X] Output delimiters are `<%= %>` and tags are `<% %>`; variables substitute in text files
+- [X] `{{VSCODE_...}}` text is preserved unchanged in installed skills
+- [X] Sub-files install alongside their skill, including nested directories
+- [X] Non-text files are copied byte for byte
+- [X] Tests at the CLI seam cover each of the above
 
 Checklist key: `- [ ]` Not started; `- [X]` Complete; `- [-]` In progress; `- [S]` Skipped.
 

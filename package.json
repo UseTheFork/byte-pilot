@@ -27,12 +27,14 @@
     "test": "node --import tsx --test tests/*.test.ts"
   },
   "dependencies": {
-    "chalk": "^6.0.1"
+    "chalk": "^6.0.1",
+    "nunjucks": "^3.2.4"
   },
   "devDependencies": {
     "@changesets/cli": "^3.0.3",
     "@types/cors": "^2.8.19",
     "@types/node": "^26.6.4",
+    "@types/nunjucks": "^3.2.6",
     "oxfmt": "^0.72.0",
     "oxlint": "^1.87.0",
     "tsc-alias": "^1.8.16",
