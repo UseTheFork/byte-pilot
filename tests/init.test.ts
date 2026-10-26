@@ -3,6 +3,8 @@ import { readFile, readdir, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { after, before, test } from "node:test";
 
+import { Chalk } from "chalk";
+
 import { makeJustStubDir, makeTempDir, pathWith, runCli } from "./helpers.ts";
 
 let justDirectory: string;
@@ -15,15 +17,53 @@ after(async () => {
   await rm(justDirectory, { recursive: true, force: true });
 });
 
-async function runInit(args: string[]) {
+async function runInit(args: string[], env: Record<string, string> = {}) {
   const project = await makeTempDir();
   try {
-    return { project, result: runCli(project, ["init", ...args], pathWith(justDirectory)) };
+    return { project, result: runCli(project, ["init", ...args], pathWith(justDirectory), env) };
   } catch (error) {
     await rm(project, { recursive: true, force: true });
     throw error;
   }
 }
+
+test("init reports success with a plain message when colors are off", async () => {
+  const { project, result } = await runInit(["--stack", "python"]);
+
+  try {
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(result.stdout, "✔ Installed 1 skill(s) for python\n");
+  } finally {
+    await rm(project, { recursive: true, force: true });
+  }
+});
+
+test("init colors success output with chalk when colors are forced", async () => {
+  const { project, result } = await runInit(["--stack", "python"], { FORCE_COLOR: "1" });
+
+  try {
+    assert.equal(result.status, 0, result.stderr);
+    const forced = new Chalk({ level: 1 });
+    assert.equal(
+      result.stdout,
+      `${forced.green("✔")} Installed 1 skill(s) for ${forced.cyan("python")}\n`,
+    );
+  } finally {
+    await rm(project, { recursive: true, force: true });
+  }
+});
+
+test("init colors errors red with chalk when colors are forced", async () => {
+  const { project, result } = await runInit([], { FORCE_COLOR: "1" });
+
+  try {
+    assert.notEqual(result.status, 0);
+    const forced = new Chalk({ level: 1 });
+    assert.equal(result.stderr.startsWith(`${forced.red.bold("spindle:")} `), true, result.stderr);
+  } finally {
+    await rm(project, { recursive: true, force: true });
+  }
+});
 
 test("init installs the placeholder skill and records repeatable stack flags", async () => {
   const { project, result } = await runInit(["--stack", "php-laravel", "--stack", "typescript"]);

@@ -20,11 +20,17 @@ export async function makeJustStubDir() {
 }
 
 // Runs the real CLI in `project`; node and tsx are addressed by absolute path so `searchPath` is free to exclude them.
-export function runCli(project: string, args: string[], searchPath: string) {
+// Colors are off unless a test opts in, so output assertions stay independent of the parent's terminal.
+export function runCli(
+  project: string,
+  args: string[],
+  searchPath: string,
+  env: Record<string, string> = {},
+) {
   return spawnSync(process.execPath, ["--import", tsxLoader, cli, ...args], {
     cwd: project,
     encoding: "utf8",
-    env: { ...process.env, PATH: searchPath, Path: searchPath },
+    env: { ...process.env, FORCE_COLOR: "0", ...env, PATH: searchPath, Path: searchPath },
   });
 }
 

@@ -5,6 +5,8 @@ import { delimiter, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 
+import chalk from "chalk";
+
 const supportedStacks = ["php-laravel", "python", "typescript"] as const;
 
 const justInstallUrl = "https://just.systems/man/en/installation.html";
@@ -60,6 +62,10 @@ async function init(stacks: string[]) {
     join(githubDirectory, "spindle.json"),
     `${JSON.stringify({ stacks, variables: {} }, null, 2)}\n`,
   );
+
+  console.log(
+    `${chalk.green("✔")} Installed ${skillStubs.length} skill(s) for ${chalk.cyan(stacks.join(", "))}`,
+  );
 }
 
 async function main() {
@@ -94,6 +100,6 @@ async function main() {
 
 main().catch((error: unknown) => {
   const message = error instanceof Error ? error.message : String(error);
-  console.error(`spindle: ${message}`);
+  console.error(`${chalk.red.bold("spindle:")} ${message}`);
   process.exitCode = 1;
 });
