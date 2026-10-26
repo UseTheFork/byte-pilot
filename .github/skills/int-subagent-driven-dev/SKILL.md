@@ -35,7 +35,7 @@ Before dispatch, read the ticket's comments and session ledger. Restore the curr
 
 2. **Implement one ticket.** Set `Execution: claimed`, then `implementing`. Dispatch one implementer with [the implementer contract](implementer-prompt.md), canonical source pointers, allowed code/test and `.scratch` files, report path, checks, permissions, and any dependency evidence. Workers use the existing checkout and never dispatch other agents.
 
-   Follow [the test workflow](tdd-evidence.md): start each behavior change or fix with a relevant failing test, implement until it passes, and continue through the ticket without a first-slice pause. Pure refactors reuse existing tests. Run relevant tests after all code changes and save a concise report with the tested snapshot, changed files, criteria, commands/results, and limitations. No evidence matrix, archived RED output, or controller release is required.
+   Follow [the test workflow](tdd-evidence.md) once for the ticket: write covering tests for its acceptance criteria, verify RED, implement the whole ticket, then run relevant tests and regression checks to establish GREEN. Do not require per-behavior cycles or controller checkpoints; intermediate test runs are optional. Pure refactors reuse existing tests. Save a concise report with the tested snapshot, changed files, criteria, commands/results, and limitations. No evidence matrix or archived RED output is required.
 
    **Complete when:** the report identifies the current code, relevant tests pass after the final edit, and any limitations are explicit.
 

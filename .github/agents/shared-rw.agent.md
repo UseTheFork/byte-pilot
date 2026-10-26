@@ -12,7 +12,10 @@ tools:
     read,
     search,
     edit,
-    todo
+    todo,
+    skill,
+    list_skills,
+    read_skill
   ]
 agents: []
 ---

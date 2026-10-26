@@ -13,7 +13,10 @@ tools:
     search,
     edit,
     execute,
-    todo
+    todo,
+    skill,
+    list_skills,
+    read_skill
   ]
 agents: []
 ---

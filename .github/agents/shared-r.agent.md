@@ -11,7 +11,10 @@ tools:
   [
     read,
     search,
-    todo
+    todo,
+    skill,
+    list_skills,
+    read_skill
   ]
 agents: []
 ---

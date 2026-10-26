@@ -30,23 +30,27 @@ When the shape of that interface is itself in question (how deep the module is, 
 
 - **Implementation-coupled**: mocks internal collaborators, tests private methods, or verifies through a side channel (querying the database instead of using the interface). The tell: the test breaks when you refactor but behavior hasn't changed.
 - **Tautological**: the assertion recomputes the expected value the way the code does (`expect(add(a, b)).toBe(a + b)`, a snapshot derived by hand the same way, a constant asserted equal to itself), so it passes by construction and can never disagree with the code. Expected values must come from an independent source of truth: a known-good literal, a worked example, the spec.
-- **Horizontal slicing**: writing all tests first, then all implementation. Bulk tests verify _imagined_ behavior: you test the _shape_ of things rather than user-facing behavior, the tests go insensitive to real changes, and you commit to test structure before understanding the implementation. Work in **vertical slices** instead: one test → one implementation → repeat, each test a **tracer bullet** that responds to what the last cycle taught you.
+- **Criteria without coverage**: a single failing test does not necessarily cover a whole task. Map every acceptance criterion to focused behavioral tests before implementation, then run the covering set together for RED. The requirement is complete behavioral coverage, not one test per behavior or one test total.
 
-## TDD loop
+## Task-level test-first workflow
 
-For each behavior change or bug fix, work in small red → green cycles. Refactoring is separate from this loop.
+Use one RED → implementation → GREEN sequence per assigned task.
+Do not require a separate cycle for every behavior, test, or file.
 
-1. **Choose a behavior and test boundary.** Identify the behavior to change and the public interface or other appropriate boundary for observing it. If the expected behavior or boundary is genuinely unclear, clarify it before writing the test; otherwise, choose a reasonable boundary and proceed.
-2. **RED: write one focused test.** Describe the expected behavior, not the implementation. If the production code already exists, don't delete it just to simulate test-first; write or adjust a test that demonstrates the required behavior or reproduces the regression.
-3. **Verify RED.** Run the focused test. Confirm it fails for the intended reason—not because of a typo, broken setup, or unrelated failure. If it passes, check whether the behavior already exists or the test fails to distinguish the expected behavior.
-4. **GREEN: make the smallest change.** Change only what is needed to satisfy the test. Avoid speculative behavior and unrelated cleanup.
-5. **Verify GREEN.** Rerun the focused test and confirm it passes. Run the narrowest additional checks appropriate to the change, and report relevant failures.
-6. **Repeat for the next behavior.** Start another focused red → green cycle only for the next behavior change or bug fix, not for a change to internal structure.
+1. **Define coverage.** Map the task's acceptance criteria to behavioral tests at the agreed public seams. Use enough focused tests to cover the task; one test is sufficient only when it covers the requirement.
+2. **RED.** Write or update the covering tests before changing production code. Run them together and confirm the expected failures demonstrate missing behavior, not broken setup or unrelated errors. Existing behavior may already pass; do not manufacture failures.
+3. **Implement the whole task.** Complete all required production changes without mandatory intermediate test runs, per-behavior checkpoints, or controller approval. Intermediate runs remain optional.
+4. **GREEN.** Run the new or changed tests and the narrowest relevant regression checks against the completed implementation. Correct failures and rerun affected checks until they pass. Any later code change requires fresh relevant verification.
+
+Do not weaken behavioral assertions merely to obtain GREEN. Report
+failed or unavailable required checks explicitly.
+
+Pure refactors reuse existing behavioral tests and require no RED phase.
 
 ## Refactoring outside the loop
 
 Refactoring preserves observable behavior. After GREEN, or for a standalone refactor with passing tests, make the structural improvement and rerun the same relevant tests. A pure refactor requires neither new tests nor a fresh RED phase; keep existing behavioral assertions unchanged.
 
-**Complete when:** the relevant tests pass again and the diff preserves the tested behavior. If the refactor breaks an existing test, correct the regression rather than weakening the assertion. If the intended behavior changes, treat that change as its own red → green slice instead of calling it a refactor.
+**Complete when:** the relevant tests pass again and the diff preserves the tested behavior. If the refactor breaks an existing test, correct the regression rather than weakening the assertion. If the intended behavior changes, treat it as a behavior-changing task and use this workflow instead of calling it a refactor.
 
 See [tests.md](tests.md) for test examples and [mocking.md](mocking.md) for mocking guidance.

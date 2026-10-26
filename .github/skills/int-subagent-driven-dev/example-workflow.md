@@ -16,7 +16,7 @@ just sdd::workspace --workspace /repo \
 ## Ticket 1
 
 1. Set `Execution: claimed`, then dispatch one implementer and set `implementing`. The worker edits assigned code/tests in `/repo` and may update assigned `.scratch` files.
-2. The implementer starts each behavior change with a failing test and implements until it passes, continuing through the ticket without a checkpoint pause or evidence matrix. After final relevant tests pass, it saves a concise implementation report directly under `.scratch`.
+2. The implementer writes tests covering the ticket's acceptance criteria and runs them together to verify RED, then implements the whole ticket. Intermediate runs are optional. The implementer runs relevant tests and regression checks against the completed ticket to establish GREEN, then saves a concise report directly under `.scratch`.
 3. Freeze code changes. A fresh code reviewer checks the current diff. The controller then completes separate Spec and Quality task review. Reviewers may save assigned reports under `.scratch` but do not edit code or spawn agents.
 4. If a blocking finding remains, spend one of the task's five shared fix dispatches, capture fresh covering tests, and run one scoped re-review. Otherwise, run current checks, set `Execution: integrated`, and recompute the graph.
 
