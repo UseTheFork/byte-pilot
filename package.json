@@ -15,7 +15,7 @@
   ],
   "type": "module",
   "scripts": {
-    "build": "tsc && tsc-alias && mkdir -p build/stubs/skills && cp -R src/stubs/skills/. build/stubs/skills/ && chmod 755 build/index.js",
+    "build": "tsc && tsc-alias && mkdir -p build/stubs && cp -R src/stubs/. build/stubs/ && chmod 755 build/index.js",
     "start": "node build/index.js",
     "init": "tsx src/index.ts init",
     "validate": "tsx src/index.ts validate",
@@ -27,6 +27,7 @@
     "test": "node --import tsx --test tests/*.test.ts"
   },
   "dependencies": {
+    "@clack/prompts": "^1.8.1",
     "chalk": "^6.0.1",
     "nunjucks": "^3.2.4"
   },

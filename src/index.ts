@@ -7,7 +7,9 @@ import { parseArgs } from "node:util";
 
 import chalk from "chalk";
 
+import { promptStacks, promptVariable } from "./prompts.js";
 import { renderFile, type RenderContext } from "./render.js";
+import { loadVariableDefinitions, parseVariableFlags } from "./variables.js";
 
 const supportedStacks = ["php-laravel", "python", "typescript"] as const;
 
@@ -94,34 +96,82 @@ async function init(stacks: string[], variables: Record<string, string> = {}) {
   );
 }
 
+const helpText = `${chalk.bold("Usage:")} spindle init [options]
+
+Install the spindle skills into .github/skills and save .github/spindle.json.
+
+${chalk.bold("Options:")}
+  --stack <id>          Stack to install; repeat for several (${supportedStacks.join(", ")})
+  --var <name>=<value>  Set a variable; repeat for several. Unset variables use their default
+  --no-interactive      Never prompt; missing required input is an error
+  --help                Show this help
+
+Prompts are also disabled when stdin or stdout is not a terminal.
+`;
+
 async function main() {
   await requireJust();
 
   const { positionals, values } = parseArgs({
     args: process.argv.slice(2),
-    options: { stack: { type: "string", multiple: true } },
+    options: {
+      stack: { type: "string", multiple: true },
+      var: { type: "string", multiple: true },
+      "no-interactive": { type: "boolean" },
+      help: { type: "boolean" },
+    },
     allowPositionals: true,
     strict: true,
   });
 
+  if (values.help) {
+    console.log(helpText);
+    return;
+  }
+
   if (positionals[0] !== "init" || positionals.length !== 1) {
     throw new Error(
-      "Usage: spindle init --stack <php-laravel|python|typescript> [--stack <stack>]",
+      "Usage: spindle init [--stack <id>] [--var <name>=<value>] [--no-interactive]. See --help.",
     );
   }
 
-  const stacks = values.stack ?? [];
-  if (stacks.length === 0) {
-    throw new Error("Provide at least one --stack flag <php-laravel|python|typescript>.");
-  }
+  const interactive =
+    !values["no-interactive"] && Boolean(process.stdin.isTTY) && Boolean(process.stdout.isTTY);
 
+  const definitions = await loadVariableDefinitions(stubsRoot());
+  const supplied = parseVariableFlags(values.var ?? [], definitions);
+
+  let stacks = [...new Set(values.stack ?? [])];
   for (const stack of stacks) {
     if (!supportedStacks.includes(stack as (typeof supportedStacks)[number])) {
       throw new Error(`Invalid stack '${stack}'. Supported stacks: ${supportedStacks.join(", ")}.`);
     }
   }
+  if (stacks.length === 0) {
+    if (!interactive) {
+      throw new Error(
+        `Provide at least one --stack flag <${supportedStacks.join("|")}> (or run interactively).`,
+      );
+    }
+    stacks = await promptStacks(supportedStacks);
+  }
 
-  await init([...new Set(stacks)]);
+  const variables: Record<string, string> = {};
+  for (const definition of definitions) {
+    if (definition.name in supplied) {
+      variables[definition.name] = supplied[definition.name];
+    } else if (interactive) {
+      variables[definition.name] = await promptVariable(definition);
+    } else if (definition.default !== undefined) {
+      variables[definition.name] = definition.default;
+    } else {
+      throw new Error(
+        `Variable '${definition.name}' (${definition.description}) has no default; provide --var ${definition.name}=<value>.`,
+      );
+    }
+  }
+
+  await init(stacks, variables);
 }
 
 main().catch((error: unknown) => {

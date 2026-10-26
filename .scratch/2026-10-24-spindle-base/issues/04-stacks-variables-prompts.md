@@ -8,14 +8,15 @@ Category: enhancement
 **Blocked by:** 01
 
 **Status:** ready-for-agent
+**Execution:** integrated
 
-- [ ] Interactive stack selection requires at least one stack; flags accept repeated stack values
-- [ ] Unknown stack ids are rejected with a clear error
-- [ ] Variables prompt with defaults; flags supply values; defaults apply when allowed
-- [ ] `spindle.json` has the shape `{ "stacks": [...], "variables": { "<name>": "<value>" } }` with string values and nothing per skill
-- [ ] Non-interactive mode with missing required input exits non-zero with a clear error
-- [ ] Flag names are documented in the CLI help
-- [ ] Tests at the CLI seam use flags and cover each of the above
+- [X] Interactive stack selection requires at least one stack; flags accept repeated stack values
+- [X] Unknown stack ids are rejected with a clear error
+- [X] Variables prompt with defaults; flags supply values; defaults apply when allowed
+- [X] `spindle.json` has the shape `{ "stacks": [...], "variables": { "<name>": "<value>" } }` with string values and nothing per skill
+- [X] Non-interactive mode with missing required input exits non-zero with a clear error
+- [X] Flag names are documented in the CLI help
+- [X] Tests at the CLI seam use flags and cover each of the above
 
 Checklist key: `- [ ]` Not started; `- [X]` Complete; `- [-]` In progress; `- [S]` Skipped.
 
