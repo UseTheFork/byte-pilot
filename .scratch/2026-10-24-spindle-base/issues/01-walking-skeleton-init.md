@@ -8,12 +8,13 @@ Category: enhancement
 **Blocked by:** None (can start immediately)
 
 **Status:** ready-for-agent
+**Execution:** integrated
 
-- [ ] The package exposes a `spindle` binary and no `byte` binary
-- [ ] `init` accepts a stack flag and writes `.github/spindle.json` with `stacks` and `variables`
-- [ ] The placeholder stub renders into `.github/skills/<name>/SKILL.md` with a semver `version`
-- [ ] Exit code is 0 on success and non-zero on failure
-- [ ] A test runs the real CLI as a subprocess in a temp directory and asserts exit code, installed skill and config contents
+- [X] The package exposes a `spindle` binary and no `byte` binary
+- [X] `init` accepts a stack flag and writes `.github/spindle.json` with `stacks` and `variables`
+- [X] The placeholder stub renders into `.github/skills/<name>/SKILL.md` with a semver `version`
+- [X] Exit code is 0 on success and non-zero on failure
+- [X] A test runs the real CLI as a subprocess in a temp directory and asserts exit code, installed skill and config contents
 
 Checklist key: `- [ ]` Not started; `- [X]` Complete; `- [-]` In progress; `- [S]` Skipped.
 
