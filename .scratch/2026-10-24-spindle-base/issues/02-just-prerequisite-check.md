@@ -8,11 +8,12 @@ Category: enhancement
 **Blocked by:** 01
 
 **Status:** ready-for-agent
+**Execution:** integrated
 
-- [ ] Every command checks for `just` before any other step
-- [ ] A missing `just` produces a non-zero exit, an error message and an install link
-- [ ] Nothing is written to disk when `just` is missing
-- [ ] A test runs the CLI with a `PATH` that excludes `just` and asserts the above
+- [X] Every command checks for `just` before any other step
+- [X] A missing `just` produces a non-zero exit, an error message and an install link
+- [X] Nothing is written to disk when `just` is missing
+- [X] A test runs the CLI with a `PATH` that excludes `just` and asserts the above
 
 Checklist key: `- [ ]` Not started; `- [X]` Complete; `- [-]` In progress; `- [S]` Skipped.
 

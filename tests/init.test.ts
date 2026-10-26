@@ -1,23 +1,24 @@
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
-import { mkdtemp, readFile, readdir, rm } from "node:fs/promises";
-import { join, resolve } from "node:path";
-import { test } from "node:test";
+import { readFile, readdir, rm } from "node:fs/promises";
+import { join } from "node:path";
+import { after, before, test } from "node:test";
 
-const repositoryRoot = process.cwd();
-const cli = resolve(repositoryRoot, "src/index.ts");
-const tsx = resolve(repositoryRoot, "node_modules/.bin/tsx");
+import { makeJustStubDir, makeTempDir, pathWith, runCli } from "./helpers.ts";
+
+let justDirectory: string;
+
+before(async () => {
+  justDirectory = await makeJustStubDir();
+});
+
+after(async () => {
+  await rm(justDirectory, { recursive: true, force: true });
+});
 
 async function runInit(args: string[]) {
-  const project = await mkdtemp(join(repositoryRoot, ".scratch", "spindle-cli-"));
-
+  const project = await makeTempDir();
   try {
-    const result = spawnSync(tsx, [cli, "init", ...args], {
-      cwd: project,
-      encoding: "utf8",
-    });
-
-    return { project, result };
+    return { project, result: runCli(project, ["init", ...args], pathWith(justDirectory)) };
   } catch (error) {
     await rm(project, { recursive: true, force: true });
     throw error;

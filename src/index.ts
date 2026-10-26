@@ -1,10 +1,42 @@
 #!/usr/bin/env node
-import { cp, mkdir, readdir, writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import { constants } from "node:fs";
+import { access, cp, mkdir, readdir, writeFile } from "node:fs/promises";
+import { delimiter, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 
 const supportedStacks = ["php-laravel", "python", "typescript"] as const;
+
+const justInstallUrl = "https://just.systems/man/en/installation.html";
+
+async function isExecutable(path: string) {
+  try {
+    await access(path, constants.X_OK);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function requireJust() {
+  const extensions =
+    process.platform === "win32"
+      ? ["", ...(process.env.PATHEXT ?? ".COM;.EXE;.BAT;.CMD").split(";").filter(Boolean)]
+      : [""];
+  const searchPath = process.env.PATH ?? process.env.Path ?? "";
+
+  for (const directory of searchPath.split(delimiter).filter(Boolean)) {
+    for (const extension of extensions) {
+      if (await isExecutable(join(directory, `just${extension}`))) {
+        return;
+      }
+    }
+  }
+
+  throw new Error(
+    `\`just\` is not installed or not on PATH. spindle requires it; install it from ${justInstallUrl}`,
+  );
+}
 
 async function init(stacks: string[]) {
   const githubDirectory = join(process.cwd(), ".github");
@@ -31,6 +63,8 @@ async function init(stacks: string[]) {
 }
 
 async function main() {
+  await requireJust();
+
   const { positionals, values } = parseArgs({
     args: process.argv.slice(2),
     options: { stack: { type: "string", multiple: true } },
