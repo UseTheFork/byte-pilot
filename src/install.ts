@@ -1,4 +1,4 @@
-import { access, copyFile, mkdir, readdir, writeFile } from "node:fs/promises";
+import { access, copyFile, lstat, mkdir, readdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -19,6 +19,29 @@ export async function exists(path: string) {
     return true;
   } catch {
     return false;
+  }
+}
+
+export async function assertSafeInstallPaths(githubDirectory: string, skillNames: string[]) {
+  const paths = [
+    githubDirectory,
+    join(githubDirectory, "skills"),
+    join(githubDirectory, "spindle.json"),
+    ...skillNames.map((name) => join(githubDirectory, "skills", name)),
+  ];
+
+  for (const path of paths) {
+    try {
+      if ((await lstat(path)).isSymbolicLink()) {
+        throw new Error(
+          "Refusing to write through symbolic link '" +
+            path +
+            "'. Spindle writes only inside .github.",
+        );
+      }
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+    }
   }
 }
 

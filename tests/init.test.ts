@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, rm, symlink, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { after, before, test } from "node:test";
 
@@ -120,3 +120,98 @@ test("init rejects unsupported stack ids with a clear error", async () => {
     await rm(project, { recursive: true, force: true });
   }
 });
+
+test(
+  "init refuses a symlinked .github directory without writing through it",
+  { skip: process.platform === "win32" },
+  async () => {
+    const project = await makeTempDir();
+    const outside = join(project, "outside");
+    try {
+      await mkdir(outside);
+      await writeFile(join(outside, "sentinel"), "keep");
+      await symlink(outside, join(project, ".github"), "dir");
+      const result = runCli(
+        project,
+        ["init", "--stack", "python", "--on-conflict", "overwrite"],
+        pathWith(justDirectory),
+        {
+          SPINDLE_STUBS_DIR: stubsDirectory,
+        },
+      );
+
+      assert.notEqual(result.status, 0);
+      assert.match(result.stderr, /\.github.*symbolic link|symbolic link.*\.github/i);
+      assert.equal(await readFile(join(outside, "sentinel"), "utf8"), "keep");
+      await assert.rejects(readFile(join(outside, "spindle.json")));
+    } finally {
+      await rm(project, { recursive: true, force: true });
+    }
+  },
+);
+
+test(
+  "init refuses a symlinked skills directory without writing through it",
+  { skip: process.platform === "win32" },
+  async () => {
+    const project = await makeTempDir();
+    const outside = join(project, "outside");
+    try {
+      await mkdir(join(project, ".github"));
+      await mkdir(outside);
+      await writeFile(join(outside, "sentinel"), "keep");
+      await symlink(outside, join(project, ".github", "skills"), "dir");
+      const result = runCli(
+        project,
+        ["init", "--stack", "python", "--on-conflict", "overwrite"],
+        pathWith(justDirectory),
+        {
+          SPINDLE_STUBS_DIR: stubsDirectory,
+        },
+      );
+
+      assert.notEqual(result.status, 0);
+      assert.match(
+        result.stderr,
+        /\.github[\\/]skills.*symbolic link|symbolic link.*\.github[\\/]skills/i,
+      );
+      assert.equal(await readFile(join(outside, "sentinel"), "utf8"), "keep");
+      await assert.rejects(readFile(join(project, ".github", "spindle.json")));
+    } finally {
+      await rm(project, { recursive: true, force: true });
+    }
+  },
+);
+
+test(
+  "init refuses a symlinked existing skill before overwrite",
+  { skip: process.platform === "win32" },
+  async () => {
+    const project = await makeTempDir();
+    const outside = join(project, "outside");
+    try {
+      await mkdir(join(project, ".github", "skills"), { recursive: true });
+      await mkdir(outside);
+      await writeFile(join(outside, "sentinel"), "keep");
+      await symlink(outside, join(project, ".github", "skills", "demo"), "dir");
+      const result = runCli(
+        project,
+        ["init", "--stack", "python", "--on-conflict", "overwrite"],
+        pathWith(justDirectory),
+        {
+          SPINDLE_STUBS_DIR: stubsDirectory,
+        },
+      );
+
+      assert.notEqual(result.status, 0);
+      assert.match(
+        result.stderr,
+        /\.github[\\/]skills[\\/]demo.*symbolic link|symbolic link.*\.github[\\/]skills[\\/]demo/i,
+      );
+      assert.equal(await readFile(join(outside, "sentinel"), "utf8"), "keep");
+      await assert.rejects(readFile(join(project, ".github", "spindle.json")));
+    } finally {
+      await rm(project, { recursive: true, force: true });
+    }
+  },
+);

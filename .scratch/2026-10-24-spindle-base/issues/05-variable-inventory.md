@@ -8,6 +8,7 @@ Category: enhancement
 **Blocked by:** 03
 
 **Status:** ready-for-agent
+**Execution:** claimed
 
 - [ ] Every current skill and its sub-files were scanned for project-specific values
 - [ ] The inventory lists each variable with name, description, default and the skills that use it

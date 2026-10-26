@@ -7,6 +7,7 @@ import { parseArgs } from "node:util";
 import chalk from "chalk";
 
 import {
+  assertSafeInstallPaths,
   exists,
   installDirectory,
   parseConflictPolicy,
@@ -65,6 +66,11 @@ async function init(
   if (skillStubs.length === 0) {
     throw new Error("No skill stubs are available to install.");
   }
+
+  await assertSafeInstallPaths(
+    githubDirectory,
+    skillStubs.map((stub) => stub.name),
+  );
 
   const decisions = new Map<string, ConflictPolicy>();
   for (const stub of skillStubs) {
@@ -186,7 +192,14 @@ async function main() {
     return;
   }
 
-  if (await exists(join(process.cwd(), ".github", "spindle.json"))) {
+  const githubDirectory = join(process.cwd(), ".github");
+  const skillEntries = await readdir(join(stubsRoot(), "skills"), { withFileTypes: true });
+  await assertSafeInstallPaths(
+    githubDirectory,
+    skillEntries.filter((entry) => entry.isDirectory()).map((entry) => entry.name),
+  );
+
+  if (await exists(join(githubDirectory, "spindle.json"))) {
     throw new Error(
       "This repository already has .github/spindle.json; run `spindle update` instead of `init`.",
     );

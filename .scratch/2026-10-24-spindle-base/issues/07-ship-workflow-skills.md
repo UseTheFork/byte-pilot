@@ -8,6 +8,7 @@ Category: enhancement
 **Blocked by:** 03, 05, 06
 
 **Status:** ready-for-agent
+**Execution:** pending
 
 - [ ] Every remaining current skill, with its sub-files, is a stub
 - [ ] Each has a semver `version` in its `SKILL.md` frontmatter

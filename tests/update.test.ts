@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { after, before, test } from "node:test";
 
@@ -204,7 +204,16 @@ test("invalid stack ids in the config are rejected", async () => {
 });
 
 test("missing or malformed config points to init", async () => {
-  for (const config of [undefined, "{not json", { variables: {} }, "[]"]) {
+  for (const config of [
+    undefined,
+    "{not json",
+    { variables: {} },
+    { stacks: ["python"] },
+    { stacks: ["python"], variables: null },
+    { stacks: ["python"], variables: [] },
+    { stacks: ["python"], variables: { owner: 42 } },
+    "[]",
+  ]) {
     await withProject(
       { config, skills: { newer: skill("1.0.0") } },
       ["--no-interactive"],
@@ -237,3 +246,66 @@ test("update --help documents its flags", async () => {
     assert.match(result.stdout, /spindle update/);
   });
 });
+
+test(
+  "update refuses symlinked .github paths before removing or writing skills",
+  { skip: process.platform === "win32" },
+  async () => {
+    const cases: { label: string; link: "github" | "skills" | "skill" }[] = [
+      { label: ".github", link: "github" },
+      { label: ".github/skills", link: "skills" },
+      { label: ".github/skills/newer", link: "skill" },
+    ];
+
+    for (const { label, link } of cases) {
+      const project = await makeTempDir();
+      const outside = join(project, "outside");
+      try {
+        await mkdir(outside, { recursive: true });
+        await writeFile(join(outside, "sentinel"), "keep");
+        if (link === "github") {
+          await writeFile(join(outside, "spindle.json"), JSON.stringify(goodConfig));
+          await mkdir(join(outside, "skills", "newer"), { recursive: true });
+          await writeFile(join(outside, "skills", "newer", "SKILL.md"), skill("1.0.0"));
+          await symlink(outside, join(project, ".github"), "dir");
+        } else {
+          await mkdir(join(project, ".github"), { recursive: true });
+          await writeFile(join(project, ".github", "spindle.json"), JSON.stringify(goodConfig));
+          if (link === "skills") {
+            await mkdir(join(outside, "newer"), { recursive: true });
+            await writeFile(join(outside, "newer", "SKILL.md"), skill("1.0.0"));
+            await symlink(outside, join(project, ".github", "skills"), "dir");
+          } else {
+            await mkdir(join(project, ".github", "skills"), { recursive: true });
+            await writeFile(join(outside, "SKILL.md"), skill("1.0.0"));
+            await symlink(outside, join(project, ".github", "skills", "newer"), "dir");
+          }
+        }
+
+        const result = runCli(
+          project,
+          ["update", "--no-interactive", "--on-conflict", "overwrite"],
+          pathWith(justDirectory),
+          {
+            SPINDLE_STUBS_DIR: stubs,
+          },
+        );
+        assert.notEqual(result.status, 0, label);
+        assert.match(result.stderr, /symbolic link/i, label);
+        assert.equal(await readFile(join(outside, "sentinel"), "utf8"), "keep", label);
+        if (link === "github") {
+          assert.equal(
+            await readFile(join(outside, "skills", "newer", "SKILL.md"), "utf8"),
+            skill("1.0.0"),
+          );
+        } else if (link === "skills") {
+          assert.equal(await readFile(join(outside, "newer", "SKILL.md"), "utf8"), skill("1.0.0"));
+        } else {
+          assert.equal(await readFile(join(outside, "SKILL.md"), "utf8"), skill("1.0.0"));
+        }
+      } finally {
+        await rm(project, { recursive: true, force: true });
+      }
+    }
+  },
+);

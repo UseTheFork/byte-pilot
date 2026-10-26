@@ -8,6 +8,7 @@ Category: enhancement
 **Blocked by:** 04, 07
 
 **Status:** ready-for-agent
+**Execution:** pending
 
 - [ ] Rendering with each single stack yields stack-appropriate just recipes and tooling docs
 - [ ] Rendering with several stacks combines their content

@@ -4,6 +4,7 @@ import { join } from "node:path";
 import chalk from "chalk";
 
 import {
+  assertSafeInstallPaths,
   exists,
   installDirectory,
   listSkillStubs,
@@ -38,7 +39,7 @@ async function readConfig(path: string, definitionsRoot: string) {
 
   const config = parsed as { stacks?: unknown; variables?: unknown } | null;
   const stacks = config?.stacks;
-  const stored = config?.variables ?? {};
+  const stored = config?.variables;
   if (
     typeof config !== "object" ||
     config === null ||
@@ -51,7 +52,7 @@ async function readConfig(path: string, definitionsRoot: string) {
     !Object.values(stored).every((value) => typeof value === "string")
   ) {
     throw missingConfig(
-      '.github/spindle.json is malformed; expected {"stacks": [...], "variables": {...}}.',
+      '.github/spindle.json is malformed; expected {"stacks": [...], "variables": {...}}. Fix the file or run `spindle init`.',
     );
   }
   validateStacks(stacks as string[]);
@@ -74,6 +75,7 @@ export async function update(interactive: boolean, policy: ConflictPolicy | unde
   const githubDirectory = join(process.cwd(), ".github");
   const skillsDirectory = join(githubDirectory, "skills");
   const stubsDirectory = join(stubsRoot(), "skills");
+  await assertSafeInstallPaths(githubDirectory, await listSkillStubs());
   const context = await readConfig(join(githubDirectory, "spindle.json"), stubsRoot());
 
   const outdated: { name: string; installed: string; available: string }[] = [];
