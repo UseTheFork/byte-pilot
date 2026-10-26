@@ -1,13 +1,14 @@
 import { spawnSync } from "node:child_process";
-import { chmod, mkdtemp, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
+import { chmod, mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import { delimiter, join, resolve } from "node:path";
 
 const cli = resolve(process.cwd(), "src/index.ts");
 const tsxLoader = import.meta.resolve("tsx");
 
 export async function makeTempDir(prefix = "spindle-cli-") {
-  return mkdtemp(join(tmpdir(), prefix));
+  const parent = join(process.cwd(), ".scratch");
+  await mkdir(parent, { recursive: true });
+  return mkdtemp(join(parent, prefix));
 }
 
 // A directory holding a stub executable `just`, so the prerequisite check passes.

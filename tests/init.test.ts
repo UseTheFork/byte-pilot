@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFile, readdir, rm } from "node:fs/promises";
+import { mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { after, before, test } from "node:test";
 
@@ -8,19 +8,33 @@ import { Chalk } from "chalk";
 import { makeJustStubDir, makeTempDir, pathWith, runCli } from "./helpers.ts";
 
 let justDirectory: string;
+let stubsDirectory: string;
 
 before(async () => {
   justDirectory = await makeJustStubDir();
+  stubsDirectory = await makeTempDir("spindle-init-stubs-");
+  await mkdir(join(stubsDirectory, "skills", "demo"), { recursive: true });
+  await writeFile(
+    join(stubsDirectory, "skills", "demo", "SKILL.md"),
+    "---\nname: demo\nversion: 1.0.0\n---\n\n# Demo\n",
+  );
 });
 
 after(async () => {
   await rm(justDirectory, { recursive: true, force: true });
+  await rm(stubsDirectory, { recursive: true, force: true });
 });
 
 async function runInit(args: string[], env: Record<string, string> = {}) {
   const project = await makeTempDir();
   try {
-    return { project, result: runCli(project, ["init", ...args], pathWith(justDirectory), env) };
+    return {
+      project,
+      result: runCli(project, ["init", ...args], pathWith(justDirectory), {
+        SPINDLE_STUBS_DIR: stubsDirectory,
+        ...env,
+      }),
+    };
   } catch (error) {
     await rm(project, { recursive: true, force: true });
     throw error;
@@ -65,7 +79,7 @@ test("init colors errors red with chalk when colors are forced", async () => {
   }
 });
 
-test("init installs the placeholder skill and records repeatable stack flags", async () => {
+test("init installs its configured skill and records repeatable stack flags", async () => {
   const { project, result } = await runInit(["--stack", "php-laravel", "--stack", "typescript"]);
 
   try {
@@ -74,13 +88,10 @@ test("init installs the placeholder skill and records repeatable stack flags", a
       stacks: ["php-laravel", "typescript"],
       variables: {},
     });
-    const skill = await readFile(
-      join(project, ".github/skills/spindle-placeholder/SKILL.md"),
-      "utf8",
-    );
-    assert.match(skill, /^---\nname: spindle-placeholder\nversion: \d+\.\d+\.\d+\n/m);
-    assert.match(skill, /# Spindle placeholder/);
-    assert.deepEqual(await readdir(join(project, ".github/skills")), ["spindle-placeholder"]);
+    const skill = await readFile(join(project, ".github/skills/demo/SKILL.md"), "utf8");
+    assert.match(skill, /^---\nname: demo\nversion: \d+\.\d+\.\d+\n/m);
+    assert.match(skill, /# Demo/);
+    assert.deepEqual(await readdir(join(project, ".github/skills")), ["demo"]);
   } finally {
     await rm(project, { recursive: true, force: true });
   }

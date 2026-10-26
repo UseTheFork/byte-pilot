@@ -8,11 +8,12 @@ Category: enhancement
 **Blocked by:** 03
 
 **Status:** ready-for-agent
+**Execution:** integrated
 
-- [ ] Every current `int-*` skill, with its sub-files, is a stub
-- [ ] Each stub's `SKILL.md` frontmatter has a semver `version`
-- [ ] A default `init` installs them all and their content matches the current skills
-- [ ] A test asserts every shipped skill has a valid semver `version`
+- [X] Every current `int-*` skill, with its sub-files, is a stub
+- [X] Each stub's `SKILL.md` frontmatter has a semver `version`
+- [X] A default `init` installs them all and their content matches the current skills
+- [X] A test asserts every shipped skill has a valid semver `version`
 
 Checklist key: `- [ ]` Not started; `- [X]` Complete; `- [-]` In progress; `- [S]` Skipped.
 
