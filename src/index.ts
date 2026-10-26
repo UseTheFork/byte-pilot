@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 import { constants } from "node:fs";
-import { access, copyFile, mkdir, readdir, writeFile } from "node:fs/promises";
+import { access, copyFile, mkdir, readdir, rm, writeFile } from "node:fs/promises";
 import { delimiter, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 
 import chalk from "chalk";
 
-import { promptStacks, promptVariable } from "./prompts.js";
+import { promptConflict, promptStacks, promptVariable } from "./prompts.js";
 import { renderFile, type RenderContext } from "./render.js";
 import { loadVariableDefinitions, parseVariableFlags } from "./variables.js";
 
@@ -67,7 +67,23 @@ async function installDirectory(source: string, target: string, context: RenderC
   }
 }
 
-async function init(stacks: string[], variables: Record<string, string> = {}) {
+type ConflictPolicy = "overwrite" | "skip";
+
+async function exists(path: string) {
+  try {
+    await access(path);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function init(
+  stacks: string[],
+  variables: Record<string, string>,
+  interactive: boolean,
+  policy: ConflictPolicy | undefined,
+) {
   const githubDirectory = join(process.cwd(), ".github");
   const skillsDirectory = join(githubDirectory, "skills");
   const stubsDirectory = join(stubsRoot(), "skills");
@@ -78,12 +94,37 @@ async function init(stacks: string[], variables: Record<string, string> = {}) {
     throw new Error("No skill stubs are available to install.");
   }
 
-  await mkdir(skillsDirectory, { recursive: true });
+  const decisions = new Map<string, ConflictPolicy>();
   for (const stub of skillStubs) {
-    await installDirectory(join(stubsDirectory, stub.name), join(skillsDirectory, stub.name), {
-      stacks,
-      variables,
-    });
+    if (!(await exists(join(skillsDirectory, stub.name)))) {
+      continue;
+    }
+    if (policy) {
+      decisions.set(stub.name, policy);
+    } else if (interactive) {
+      decisions.set(stub.name, await promptConflict(stub.name));
+    } else {
+      throw new Error(
+        `Skill '${stub.name}' already exists; pass --on-conflict <overwrite|skip> to choose what to do in non-interactive runs.`,
+      );
+    }
+  }
+
+  await mkdir(skillsDirectory, { recursive: true });
+  let installed = 0;
+  let skipped = 0;
+  for (const stub of skillStubs) {
+    const target = join(skillsDirectory, stub.name);
+    const decision = decisions.get(stub.name);
+    if (decision === "skip") {
+      skipped += 1;
+      continue;
+    }
+    if (decision === "overwrite") {
+      await rm(target, { recursive: true, force: true });
+    }
+    await installDirectory(join(stubsDirectory, stub.name), target, { stacks, variables });
+    installed += 1;
   }
 
   await writeFile(
@@ -92,7 +133,7 @@ async function init(stacks: string[], variables: Record<string, string> = {}) {
   );
 
   console.log(
-    `${chalk.green("✔")} Installed ${skillStubs.length} skill(s) for ${chalk.cyan(stacks.join(", "))}`,
+    `${chalk.green("✔")} Installed ${installed} skill(s) for ${chalk.cyan(stacks.join(", "))}${skipped > 0 ? `. Skipped ${skipped} existing skill(s)` : ""}`,
   );
 }
 
@@ -103,9 +144,13 @@ Install the spindle skills into .github/skills and save .github/spindle.json.
 ${chalk.bold("Options:")}
   --stack <id>          Stack to install; repeat for several (${supportedStacks.join(", ")})
   --var <name>=<value>  Set a variable; repeat for several. Unset variables use their default
+  --on-conflict <overwrite|skip>
+                        Policy for skill directories that already exist; required when
+                        non-interactive and any exist (interactive runs prompt per skill)
   --no-interactive      Never prompt; missing required input is an error
   --help                Show this help
 
+Fails if .github/spindle.json already exists; use \`spindle update\` instead.
 Prompts are also disabled when stdin or stdout is not a terminal.
 `;
 
@@ -118,6 +163,7 @@ async function main() {
       stack: { type: "string", multiple: true },
       var: { type: "string", multiple: true },
       "no-interactive": { type: "boolean" },
+      "on-conflict": { type: "string" },
       help: { type: "boolean" },
     },
     allowPositionals: true,
@@ -131,8 +177,19 @@ async function main() {
 
   if (positionals[0] !== "init" || positionals.length !== 1) {
     throw new Error(
-      "Usage: spindle init [--stack <id>] [--var <name>=<value>] [--no-interactive]. See --help.",
+      "Usage: spindle init [--stack <id>] [--var <name>=<value>] [--on-conflict <overwrite|skip>] [--no-interactive]. See --help.",
     );
+  }
+
+  if (await exists(join(process.cwd(), ".github", "spindle.json"))) {
+    throw new Error(
+      "This repository already has .github/spindle.json; run `spindle update` instead of `init`.",
+    );
+  }
+
+  const policy = values["on-conflict"];
+  if (policy !== undefined && policy !== "overwrite" && policy !== "skip") {
+    throw new Error(`Invalid --on-conflict '${policy}'. Use overwrite or skip.`);
   }
 
   const interactive =
@@ -171,7 +228,7 @@ async function main() {
     }
   }
 
-  await init(stacks, variables);
+  await init(stacks, variables, interactive, policy);
 }
 
 main().catch((error: unknown) => {

@@ -1,4 +1,4 @@
-import { cancel, isCancel, multiselect, text } from "@clack/prompts";
+import { cancel, isCancel, multiselect, select, text } from "@clack/prompts";
 
 import type { VariableDefinition } from "./variables.js";
 
@@ -31,4 +31,15 @@ export async function promptVariable(definition: VariableDefinition): Promise<st
         : undefined,
   });
   return ensureAnswer<string>(answer);
+}
+
+export async function promptConflict(skill: string): Promise<"overwrite" | "skip"> {
+  const answer = await select<"overwrite" | "skip">({
+    message: `Skill '${skill}' already exists. What should happen?`,
+    options: [
+      { value: "overwrite", label: "Overwrite" },
+      { value: "skip", label: "Skip" },
+    ],
+  });
+  return ensureAnswer<"overwrite" | "skip">(answer);
 }

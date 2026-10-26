@@ -8,12 +8,13 @@ Category: enhancement
 **Blocked by:** 04, 06
 
 **Status:** ready-for-agent
+**Execution:** integrated
 
-- [ ] With an existing `spindle.json`, `init` exits non-zero, changes nothing and points to `update`
-- [ ] With existing skill directories and no config, each one is prompted overwrite or skip
-- [ ] A flag sets the overwrite-or-skip policy for non-interactive runs
-- [ ] Skipped skills are left untouched; overwritten skills are re-rendered
-- [ ] Tests at the CLI seam cover each of the above
+- [X] With an existing `spindle.json`, `init` exits non-zero, changes nothing and points to `update`
+- [X] With existing skill directories and no config, each one is prompted overwrite or skip
+- [X] A flag sets the overwrite-or-skip policy for non-interactive runs
+- [X] Skipped skills are left untouched; overwritten skills are re-rendered
+- [X] Tests at the CLI seam cover each of the above
 
 Checklist key: `- [ ]` Not started; `- [X]` Complete; `- [-]` In progress; `- [S]` Skipped.
 
