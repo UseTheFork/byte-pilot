@@ -17,7 +17,7 @@ Read the supplied sources first. Preserve existing checkout changes and report h
 
 Load `int-test-driven-development` and `int-verification-before-completion`. Follow [the test workflow](./tdd-evidence.md) once for the assigned ticket: write tests covering its acceptance criteria, verify RED, implement the whole ticket, then run relevant tests and regression checks to establish GREEN. Intermediate test runs are optional; no per-behavior cycles or controller checkpoints are required. Pure refactors reuse existing tests. A concise test summary is sufficient; no evidence matrix or archived RED output is required.
 
-Edit only assigned code, tests, and `.scratch` files in the existing checkout. Coordinate shared-file edits and leave execution states and acceptance decisions to the controller. Do not change code while a reviewer is examining the checkout. Run fresh relevant checks after the final code edit and report the tested code snapshot, commands, results, and checks not run. Commit only when explicitly authorized.
+Edit only assigned code, tests, and `.scratch` files in the existing checkout. Coordinate shared-file edits and leave execution states and acceptance decisions to the controller. Do not change code while a reviewer is examining the checkout. After the final edit, run fresh relevant tests and applicable lint and formatting checks using approved project commands. Report the tested code snapshot, commands, results, and checks not run; failed or unavailable required checks block completion. Commit only when explicitly authorized.
 
 ## Return report
 
@@ -34,7 +34,7 @@ For fixes, report each finding's correction and fresh covering-test evidence. A 
 
 ## Prompt template
 
-```md
+````md
 Implement ticket [TICKET_ID] in the existing shared checkout: [CHECKOUT].
 
 Read the canonical brief and spec at [ABSOLUTE_SOURCE_POINTERS], then follow `int-test-driven-development`, `int-verification-before-completion`, and [test workflow](tdd-evidence.md).
@@ -46,7 +46,32 @@ Read the canonical brief and spec at [ABSOLUTE_SOURCE_POINTERS], then follow `in
 **Permissions:** [PERMISSIONS]
 **Assigned report path:** [REPORT_PATH]
 
-Preserve existing changes and work only on this ticket. Map acceptance criteria to covering behavioral tests, run them before production changes to verify RED, implement the whole ticket, then run relevant tests and regression checks to establish GREEN. Intermediate runs are optional. After any later code edit, rerun affected checks. Pure refactors reuse existing tests and need no RED phase. Continue without per-behavior cycles, controller checkpoints, or an evidence matrix. Save your report and assigned tracker updates directly in `.scratch`, preserving history and avoiding concurrent writes. For resumed work or fixes, restore the snapshot, test status, round, finding IDs, and prior attempts. Do not dispatch agents or commit without explicit authorization.
+Preserve existing changes and work only on this ticket. Map acceptance criteria to covering behavioral tests, run them before production changes to verify RED, implement the whole ticket, then run relevant tests and regression checks to establish GREEN. Intermediate runs are optional. After the final edit, run applicable lint and formatting checks using approved project commands; after any later edit, rerun affected checks. Pure refactors reuse existing tests and need no RED phase. Continue without per-behavior cycles, controller checkpoints, or an evidence matrix. Save your report and assigned tracker updates directly in `.scratch`, preserving history and avoiding concurrent writes. For resumed work or fixes, restore the snapshot, test status, round, finding IDs, and prior attempts. Do not dispatch agents or commit without explicit authorization.
 
-Save the implementer report with status, tested snapshot, criterion/test summary, changed files, fresh verification, and limitations. Return its path and a concise summary.
+```mermaid
+flowchart TD
+    A[Read assignment and map criteria] --> B{Pure refactor?}
+    B -- No --> C[Write covering tests and verify RED]
+    B -- Yes --> D[Reuse existing tests]
+    C --> E[Implement ticket]
+    D --> E
+    E --> F[Verify GREEN: tests and regression checks]
+    F --> G{Tests GREEN?}
+    G -- No --> H[Fix test failures]
+    H --> F
+    G -- Yes --> I[Run lint]
+    G -- Unavailable --> R[Report blocked checks]
+    I --> J{Lint GREEN?}
+    J -- No --> K[Fix lint errors]
+    K --> F
+    J -- Yes or not applicable --> L[Run formatting check]
+    J -- Unavailable --> R
+    L --> M{Formatting GREEN?}
+    M -- No --> N[Fix formatting]
+    N --> F
+    M -- Yes or not applicable --> O[Report results and limitations]
+    M -- Unavailable --> R
 ```
+
+Save the implementer report with status, tested snapshot, criterion/test summary, changed files, fresh verification, and limitations. Failed or unavailable required checks block completion. Return its path and a concise summary.
+````
