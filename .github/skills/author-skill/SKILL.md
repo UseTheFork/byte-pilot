@@ -15,7 +15,7 @@ ${input:requirements:Describe the skill or capability to create}
 Before acting, read and follow each required skill:
 
 - **REQUIRED:** `int-writing-skills`
-- **REQUIRED:** `int-test-driven-development`
+- **REQUIRED:** `int-test-driven-development-advanced`
 - **REQUIRED:** `int-writing-for-agents`
 - **REQUIRED:** `int-verification-before-completion`
 
