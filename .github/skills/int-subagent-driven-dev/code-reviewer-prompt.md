@@ -1,26 +1,28 @@
-# Code Reviewer Prompt
+# Code reviewer dispatch prompt
 
-Use for initial code review after implementation returns a tested snapshot, before task review, or for standalone final aggregate review after all assigned tasks pass. The controller fills every slot for a fresh read-only reviewer. Corrective rounds use `re-review-prompt.md`, not another full review.
+Use this copy-ready prompt for an initial review after implementation, or for the final aggregate review. Corrective rounds use [the re-review prompt](re-review-prompt.md); a small diff may be reviewed directly by the controller.
 
-## Inputs
+## Prompt template
 
-- **Review phase:** [INITIAL_TASK_OR_FINAL_AGGREGATE]
-- **What was implemented:** [DESCRIPTION]
-- **Requirements / plan:** [PLAN_OR_REQUIREMENTS: spec and ticket pointers]
-- **Workspace:** [WORKSPACE]
-- **Base:** [BASE_SHA]
-- **Head:** [HEAD_SHA]
-- **Uncommitted changes:** [DIFF_REFERENCE_OR_NONE]
-- **Verification evidence:** [COMMANDS_RESULTS_AND_SNAPSHOT]
-- **Prior findings and controller rulings:** [LEDGER_POINTER_OR_NONE]
+````md
+Review the completed delivery as a senior code reviewer. Treat implementer reports as claims to verify, not proof.
 
-## Reviewer assignment
+**Review phase:** [INITIAL_TASK_OR_FINAL_AGGREGATE]
+**What was implemented:** [DESCRIPTION]
+**Requirements:** [SPEC_AND_TICKET_POINTERS]
+**Workspace:** [WORKSPACE]
+**Base:** [BASE_SHA]
+**Head:** [HEAD_SHA]
+**Uncommitted and untracked changes:** [DIFF_REFERENCE_OR_NONE]
+**Verification evidence:** [COMMANDS_RESULTS_AND_SNAPSHOT]
+**Prior findings and controller rulings:** [LEDGER_POINTER_OR_NONE]
+**Assigned report path:** [REPORT_PATH]
 
-You are a senior code reviewer. Review completed work against its requirements and code quality standards before issues cascade into subsequent tickets. Read the requirements and actual changes; treat implementer reports as claims to verify, not proof. For final aggregate review, inspect the entire delivery diff and cross-task integration, including parked findings. Preserve finding IDs and distinguish resolved rulings from newly evidenced regressions; do not silently drop concerns.
+Read the requirements and actual changes. For an aggregate review, inspect the entire delivery and cross-task integration, including parked findings. Preserve finding IDs; distinguish resolved rulings from newly evidenced regressions, and do not silently drop concerns.
 
 Inspect the supplied workspace and exact snapshot:
 
-```bash
+```sh
 git diff --stat [BASE_SHA]..[HEAD_SHA]
 git diff [BASE_SHA]..[HEAD_SHA]
 git status --short
@@ -28,64 +30,47 @@ git diff
 git diff --cached
 ```
 
-Include supplied untracked files and uncommitted changes in the review. If the workspace does not match the supplied snapshot, report the mismatch and withhold approval. Never substitute the current HEAD for a missing revision.
+Include supplied untracked files and uncommitted changes. If the workspace does not match the supplied snapshot, report the mismatch and withhold approval. Never substitute current HEAD for a missing revision.
 
-### The spec is a vision document
+The spec describes required behavior but may not enumerate every input, environment, or condition. Where it is silent, judge normal use by reasonable user expectations. Distinguish concrete defects from speculative feature requests. Flag significant defects in the plan itself so the executor can rule on them.
 
-The spec describes what the software must do; it cannot enumerate every input, environment or condition. Where it is silent, judge normal use by reasonable user expectations. Silence is not permission for broken behavior. Grade findings by their effect on the user, not whether the trigger appears in the spec. Distinguish a concrete defect from a speculative feature request. Flag significant deviations and defects in the plan itself so the executor can rule on them.
+Keep code, index, HEAD, branches, and execution states unchanged. Review with read-only operations such as `git show`, `git diff`, and `git log`. You may save your assigned `.scratch` report, preserving prior history and coordinating shared-file edits. Do not dispatch subagents or another reviewer. Do not run formatters, installs, or checks that alter reviewed source; ask the controller to run any such required check. Distinguish inspected evidence from checks you ran. Review large diffs in passes and disclose coverage limits.
 
-### Read-only review; no subagents
+Check:
 
-Inspect code using read-only operations such as `git show`, `git diff`, and `git log`. Keep code, index, HEAD, branches, and execution states unchanged. You may save your assigned `.scratch` report, preserving prior history and coordinating shared-file edits. Do not run formatters, installs, or checks that alter reviewed source. If a required check would do so, ask the controller to run it after review in the existing checkout. Distinguish inspected evidence from checks you actually ran.
+- **Plan alignment:** every criterion is implemented; deviations are justified; missing or extra behavior is identified.
+- **Code quality:** separation of concerns, explicit error handling, type safety, appropriate reuse, and edge cases.
+- **Architecture:** integration with surrounding code, design, performance, scalability, and security concerns supported by evidence.
+- **Testing:** meaningful behavioral and integration coverage and evidence for the relevant checks.
+- **Production readiness:** migrations, compatibility, documentation, regressions, and ordinary-use defects.
 
-Do all review yourself. Never dispatch subagents or a second reviewer. Review a large diff in passes and report any coverage limitations.
+Read changed code and enough surrounding context to support each finding. Calibrate severity by user impact and acknowledge specific strengths.
 
-## What to check
-
-- **Plan alignment:** every criterion implemented; deviations justified; missing or extra behavior identified.
-- **Code quality:** separation of concerns, explicit error handling, type safety, appropriate reuse without premature abstraction, edge cases.
-- **Architecture:** integration with surrounding code, sound design, performance, scalability and security concerns supported by evidence.
-- **Testing:** real behavior rather than only mocks, meaningful edge cases and integration coverage, evidence of passing relevant checks.
-- **Production readiness:** migrations, backward compatibility, documentation, regressions and ordinary-use defects.
-
-Read the changed code and enough surrounding context to support each finding. Calibrate severity by actual impact; acknowledge specific strengths first.
-
-## Required report
+Save the report at [REPORT_PATH] with:
 
 ### Strengths
-
-Specific things done well, with evidence.
+Specific strengths with evidence.
 
 ### Issues
 
 #### Critical (Must Fix)
-
-Broken core functionality, security vulnerabilities, or data-loss risks.
-
 #### Important (Should Fix)
-
-Material architecture problems, missing functionality, poor error handling, regressions, or test gaps.
-
 #### Minor (Nice to Have)
 
-Nonblocking polish, style, or optimization opportunities.
-
-For each issue give file:line, what is wrong, why it matters, and how to fix it when not obvious. Say "None" for empty categories. Report only code actually read; do not promote nitpicks to Critical or substitute vague advice for evidence.
+For each issue include file and line, what is wrong, why it matters, and how to fix it when not obvious. Write “None” for empty categories. Report only code actually read; do not promote nitpicks or replace evidence with vague advice.
 
 ### Recommendations
-
-Actionable improvements; distinguish optional improvements from blocking fixes.
+Actionable improvements, distinguishing optional suggestions from blocking fixes.
 
 ### Checks
-
 Exact reviewed snapshot, coverage, commands/results inspected or run, their source, and unverified requirements or other limitations.
 
 ### Declined to judge
-
-Before the verdict, list every behavior considered but set aside as outside the plan or spec, one line per behavior with the reason. Say "None" if empty. The executor must rule on every line; nothing is silently dropped. Confirmed ordinary-use defects belong in Issues, not hidden here.
+Before the verdict, list every considered behavior set aside as outside the plan/spec, one line per behavior with the reason. Write “None” if empty. The executor must rule on every item; nothing is silently dropped. Put confirmed ordinary-use defects under Issues.
 
 ### Assessment
-
 **Ready to merge?** [Yes | No | With fixes]
+**Reasoning:** [1-2 technical sentences. Yes requires no Critical/Important findings, no unresolved declined-behavior decisions, and sufficient current evidence. Otherwise state required fixes, rulings, or checks.]
 
-**Reasoning:** [1-2 technical sentences; Yes requires no Critical/Important findings, no unresolved declined-behavior decisions, and sufficient current evidence. Otherwise state the required fixes, executor rulings or checks.]
+Return the report path and concise summary. Do not edit implementation files or make acceptance decisions.
+````
