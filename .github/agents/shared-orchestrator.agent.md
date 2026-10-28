@@ -3,7 +3,7 @@ name: shared-orchestrator
 disable-model-invocation: true
 description: "Coordinates tasks across shared read-only, editing, and execution agents."
 tools:
-  [vscode/askQuestions, execute, read/problems, read/readFile, read/viewImage, read/terminalSelection, read/terminalLastCommand, read/getTaskOutput, agent, edit/createDirectory, edit/createFile, edit/editFiles, edit/rename, search, web, vscodeTasks/getTaskOutput, vscodeTasks/problems, vscodeGeneral/rename, todo, skill]
+  [vscode/askQuestions, execute, read, agent, edit, search, web, todo]
 agents:
   [
     shared-r,
